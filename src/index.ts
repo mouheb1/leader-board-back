@@ -8,26 +8,11 @@ import { startDbListener } from './services/db-listener.service.js';
 
 const app = express();
 
-// CORS configuration - allow multiple frontend origins
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  ...(process.env.FRONTEND_URL?.split(',') || []),
-  ...(process.env.MAIN_FRONTEND_URL?.split(',') || []),
-].filter(Boolean).map(url => url.trim());
-
+// CORS configuration - allow all origins
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(null, false);
-    },
-    credentials: true,
+    origin: '*',
+    credentials: false,
   })
 );
 
