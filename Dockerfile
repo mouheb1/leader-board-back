@@ -32,12 +32,16 @@ COPY package*.json ./
 # Install production dependencies only
 RUN npm ci --only=production
 
-# Copy prisma schema and generate client
+# Copy prisma schema and migrations
 COPY prisma ./prisma
 RUN npx prisma generate
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
+
+# Copy startup script
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 # Expose port
 EXPOSE 3001
@@ -46,5 +50,5 @@ EXPOSE 3001
 ENV NODE_ENV=production
 ENV PORT=3001
 
-# Start the application
-CMD ["node", "dist/index.js"]
+# Start the application with migrations
+CMD ["./start.sh"]
