@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { addClient, removeClient, getClientCount } from '../services/sse.service.js';
 import { getLeaderboard } from '../services/team.service.js';
+import { corsOrigins, isWildcard } from '../config/cors.js';
 
 const router = Router();
 
@@ -12,10 +13,17 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
-  // Set CORS header to the requesting origin (cors middleware handles validation)
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
+  // Set CORS headers for SSE
+  const requestOrigin = req.headers.origin;
+  if (isWildcard) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  } else if (requestOrigin) {
+    // Check if origin is allowed
+    const allowedOrigins = Array.isArray(corsOrigins) ? corsOrigins : [corsOrigins];
+    if (allowedOrigins.includes(requestOrigin)) {
+      res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
   }
 
   // Prevent response buffering

@@ -18,6 +18,41 @@ function handleNotification(msg) {
         }
     }
 }
+async function ensureTriggerExists(dbClient) {
+    console.log('[DB Listener] Ensuring trigger exists...');
+    const createFunctionSQL = `
+    CREATE OR REPLACE FUNCTION notify_team_score_change()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      IF OLD.score IS DISTINCT FROM NEW.score THEN
+        PERFORM pg_notify('team_score_updates', json_build_object(
+          'team_id', NEW.id,
+          'name', NEW.name,
+          'old_score', OLD.score,
+          'new_score', NEW.score,
+          'updated_at', NEW."updatedAt"
+        )::text);
+      END IF;
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+  `;
+    const createTriggerSQL = `
+    DROP TRIGGER IF EXISTS team_score_change_trigger ON "Team";
+    CREATE TRIGGER team_score_change_trigger
+    AFTER UPDATE ON "Team"
+    FOR EACH ROW
+    EXECUTE FUNCTION notify_team_score_change();
+  `;
+    try {
+        await dbClient.query(createFunctionSQL);
+        await dbClient.query(createTriggerSQL);
+        console.log('[DB Listener] Trigger created/updated successfully');
+    }
+    catch (error) {
+        console.error('[DB Listener] Error creating trigger:', error);
+    }
+}
 async function connect() {
     if (isConnected || client) {
         console.log('[DB Listener] Already connected');
@@ -46,6 +81,8 @@ async function connect() {
         await client.connect();
         isConnected = true;
         console.log('[DB Listener] Connected to PostgreSQL');
+        // Ensure trigger exists on startup
+        await ensureTriggerExists(client);
         await client.query('LISTEN team_score_updates');
         console.log('[DB Listener] Listening for team_score_updates');
     }

@@ -5,14 +5,17 @@ import routes from './routes/index.js';
 import sseRoutes from './routes/sse.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { startDbListener } from './services/db-listener.service.js';
+import { corsOrigins, isWildcard } from './config/cors.js';
 
 const app = express();
 
-// CORS configuration - allow all origins
+// CORS configuration
 app.use(
   cors({
-    origin: '*',
-    credentials: false,
+    origin: corsOrigins,
+    credentials: !isWildcard, // Only allow credentials with specific origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
@@ -34,7 +37,7 @@ const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`CORS allowed origins: *`);
+  console.log(`CORS allowed origins: ${Array.isArray(corsOrigins) ? corsOrigins.join(', ') : corsOrigins}`);
 
   // Start database listener for real-time updates
   await startDbListener();
