@@ -13,9 +13,9 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
-  process.env.FRONTEND_URL,
-  process.env.MAIN_FRONTEND_URL,
-].filter(Boolean);
+  ...(process.env.FRONTEND_URL?.split(',') || []),
+  ...(process.env.MAIN_FRONTEND_URL?.split(',') || []),
+].filter(Boolean).map(url => url.trim());
 
 app.use(
   cors({
