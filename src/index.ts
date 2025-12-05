@@ -34,7 +34,7 @@ const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
+  console.log(`CORS allowed origins: *`);
 
   // Start database listener for real-time updates
   await startDbListener();
