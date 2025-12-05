@@ -16,7 +16,6 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
   const origin = req.headers.origin;
   if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
 
   // Prevent response buffering
