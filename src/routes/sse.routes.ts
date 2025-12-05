@@ -11,8 +11,13 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:5173');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  // Set CORS header to the requesting origin (cors middleware handles validation)
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
 
   // Prevent response buffering
   res.flushHeaders();
