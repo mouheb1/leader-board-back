@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { broadcastLeaderboard } from './sse.service.js';
+import { broadcastLeaderboard } from './socket.service.js';
 
 const { Client } = pg;
 

@@ -1,12 +1,14 @@
 import 'dotenv/config';
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import routes from './routes/index.js';
-import sseRoutes from './routes/sse.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { startDbListener } from './services/db-listener.service.js';
+import { initializeSocket } from './services/socket.service.js';
 
 const app = express();
+const httpServer = createServer(app);
 
 // CORS configuration - allow multiple frontend origins
 const allowedOrigins = [
@@ -38,18 +40,19 @@ app.use(express.urlencoded({ extended: true }));
 // API routes
 app.use('/api', routes);
 
-// SSE routes
-app.use('/api/sse', sseRoutes);
-
 // Error handling
 app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, async () => {
+// Initialize Socket.IO
+initializeSocket(httpServer, allowedOrigins);
+
+httpServer.listen(PORT, async () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
+  console.log(`Socket.IO enabled for real-time updates`);
 
   // Start database listener for real-time updates
   await startDbListener();
